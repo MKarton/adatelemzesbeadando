@@ -3,9 +3,11 @@ library(usmap)
 library(sf)
 library(tidyverse)
 library(leaflet)
+library(stringr)
 
 
 votes <- readxl::read_excel("C:/Users/Felhasznalo/Documents/votes_projekt.xlsx")
+votes$county_name <- str_replace(votes$county_name, " County", "")
 USA <- st_read(dsn = "C:/Users/Felhasznalo/Downloads/cb_2018_us_county_500k.shp")
 df <- data.frame(USA)
 states_sf <- st_as_sf(USA)
@@ -13,24 +15,24 @@ states_sf <- st_as_sf(USA)
 ordered_states <- arrange(states_sf, states_sf$NAME)
 ordered_votes <- arrange(votes, votes$county_name)
 
+hiany <- setdiff(unique(ordered_votes$county_name), unique(ordered_states$NAME))
 
-# Define UI for application that draws a histogram
+for (i in 1:106){
+df_USA <- subset(ordered_states, ordered_states$NAME != hiany[i])
+}
+
+
 ui <- fluidPage(
-
-    # Application title
     titlePanel("USA megyék"),
     
     leafletOutput("map", height = "100vh")
-#l
     
 )
 
-# Define server logic required to draw a histogram
 server <- function(input, output, session) {
     
     bins <- c(0, 5, 10, 15, 20, 25, 30, 35, 40)
 
-    #Sortie map
     output$map <- renderLeaflet({
         leaflet()%>%
             addProviderTiles("OpenStreetMap.Mapnik")%>%
@@ -45,5 +47,4 @@ server <- function(input, output, session) {
     
 }
 
-# Run the application 
 shinyApp(ui = ui, server = server)
